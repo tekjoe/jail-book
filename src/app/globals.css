@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-secondary;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-secondary-light rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-primary-dark;
+}
+
+@layer components {
+
+  /* Custom component styles */
+  .gradient-button {
+    @apply bg-primary-gradient transition-all duration-300;
+  }
+
+  .gradient-button:hover {
+    @apply brightness-110 -translate-y-0.5;
+  }
+}
