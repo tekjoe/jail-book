@@ -8,10 +8,10 @@ export async function GET(request: Request) {
     const county = url.searchParams.get('county');
 
     // Check for API key (in a real app, use a more secure method)
-    // const apiKey = request.headers.get('x-api-key');
-    // if (apiKey !== process.env.API_SECRET_KEY) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    const apiKey = request.headers.get('x-api-key');
+    if (apiKey !== process.env.API_SECRET_KEY) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     // If county parameter is provided, refresh only that county
     if (county) {
