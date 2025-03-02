@@ -50,7 +50,7 @@ export default function CaseInformation({ cases }: CaseInformationProps) {
       <div className="overflow-x-auto">
         <div className="bg-sidebar-bg rounded-md">
           {/* Header */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 p-4 border-b border-card-border bg-table-header-bg text-xs font-medium text-foreground uppercase">
+          <div className="hidden md:grid md:grid-cols-5 gap-2 p-4 border-b border-card-border bg-table-header-bg text-xs font-medium text-foreground uppercase">
             <div>Case Number</div>
             <div>County</div>
             <div>Filing Date</div>
@@ -62,17 +62,25 @@ export default function CaseInformation({ cases }: CaseInformationProps) {
           <div className="divide-y divide-card-border">
             {currentCases.map((caseItem, index) => (
               <div key={`${caseItem.caseNo}-${index}`} className="grid grid-cols-1 md:grid-cols-5 gap-2 p-4 hover:bg-table-row-hover">
-                <div className="text-foreground font-medium">{caseItem.caseNo}</div>
-                <div className="text-foreground">{caseItem.countyName}</div>
+                <div className="text-foreground font-medium">
+                  <span className="md:hidden font-medium text-xs uppercase mr-2 text-foreground opacity-70">Case Number:</span>
+                  <span className="block md:inline mt-1 md:mt-0">{caseItem.caseNo}</span>
+                </div>
                 <div className="text-foreground">
-                  {new Date(caseItem.filingDate).toLocaleDateString('en-US', {
+                  <span className="md:hidden font-medium text-xs uppercase mr-2 text-foreground opacity-70">County:</span>
+                  <span className="block md:inline mt-1 md:mt-0">{caseItem.countyName}</span>
+                </div>
+                <div className="text-foreground">
+                  <span className="md:hidden font-medium text-xs uppercase mr-2 text-foreground opacity-70">Filing Date:</span>
+                  <span className="block md:inline mt-1 md:mt-0">{new Date(caseItem.filingDate).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
-                  })}
+                  })}</span>
                 </div>
                 <div className="text-foreground">
-                  <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
+                  <span className="md:hidden font-medium text-xs uppercase mr-2 text-foreground opacity-70">Status:</span>
+                  <span className={`inline-flex px-2 py-1 text-xs rounded-full mt-1 md:mt-0 ${
                     caseItem.status === 'Closed' 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-yellow-100 text-yellow-800'
@@ -80,7 +88,10 @@ export default function CaseInformation({ cases }: CaseInformationProps) {
                     {caseItem.status}
                   </span>
                 </div>
-                <div className="text-foreground">{caseItem.caption}</div>
+                <div className="text-foreground">
+                  <span className="md:hidden font-medium text-xs uppercase mr-2 text-foreground opacity-70">Caption:</span>
+                  <span className="block md:inline mt-1 md:mt-0">{caseItem.caption}</span>
+                </div>
               </div>
             ))}
           </div>

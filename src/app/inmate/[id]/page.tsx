@@ -6,9 +6,9 @@ import CaseInformation from '@/components/CaseInformation';
 
 
 interface InmatePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 async function getInmateById(id: string) {
@@ -27,7 +27,7 @@ async function getInmateById(id: string) {
   }
 }
 
-async function fetchCaseInformation(firstName: string, lastName: string) {
+async function fetchCaseInformation(firstName: string, lastName: string, middleName: string) {
   try {
     const response = await fetch('https://wcca.wicourts.gov/jsonPost/caseSearch', {
       method: 'POST',
@@ -39,7 +39,7 @@ async function fetchCaseInformation(firstName: string, lastName: string) {
         includeMissingMiddleName: true,
         lastName: lastName,
         firstName: firstName,
-        middleName: "",
+        middleName: middleName,
         countyNo: ""
       }),
       cache: 'no-store' // Don't cache this request
@@ -69,11 +69,11 @@ export default async function InmatePage({ params }: InmatePageProps) {
   const countySlug = inmate.county.toLowerCase().replace(/\s+/g, '-');
   
   // Fetch case information
-  const caseInformation = await fetchCaseInformation(inmate.first_name, inmate.last_name);
+  const caseInformation = await fetchCaseInformation(inmate.first_name, inmate.last_name, inmate.middle_name);
   
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4">
-      <div className="bg-card-bg border border-card-border rounded-lg shadow-md p-8">
+    <div className="max-w-7xl mx-auto py-8 px-4">
+      <div className="bg-card-bg border border-card-border rounded-lg shadow-md p-4">
         <div className="mb-6">
           <Link 
             href={`/county/${countySlug}`}
@@ -86,8 +86,8 @@ export default async function InmatePage({ params }: InmatePageProps) {
           </Link>
         </div>
         
-        <h1 className="text-3xl font-bold text-foreground mb-6">
-          {inmate.first_name} {inmate.last_name}
+        <h1 className="text-3xl font-bold text-foreground mb-6 capitalize">
+          {inmate.first_name} {inmate.middle_name} {inmate.last_name}
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -97,11 +97,15 @@ export default async function InmatePage({ params }: InmatePageProps) {
               <div className="mt-2 p-4 bg-sidebar-bg rounded-md">
                 <div className="grid grid-cols-3 gap-2 mb-2">
                   <span className="text-foreground opacity-70">First Name:</span>
-                  <span className="text-foreground col-span-2">{inmate.first_name}</span>
+                  <span className="text-foreground col-span-2 capitalize">{inmate.first_name}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  <span className="text-foreground opacity-70">Middle Name:</span>
+                  <span className="text-foreground col-span-2 capitalize">{inmate.middle_name}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mb-2">
                   <span className="text-foreground opacity-70">Last Name:</span>
-                  <span className="text-foreground col-span-2">{inmate.last_name}</span>
+                  <span className="text-foreground col-span-2 capitalize">{inmate.last_name}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <span className="text-foreground opacity-70">County:</span>
@@ -141,7 +145,7 @@ export default async function InmatePage({ params }: InmatePageProps) {
         
         <div className="mt-8 pt-6 border-t border-card-border">
           <p className="text-foreground opacity-70 text-sm">
-            This information is updated daily at 8:00 AM CST. For more detailed information, please contact the {inmate.county} County Sheriff's Office.
+            This information is updated daily at 8:00 AM CST. For more detailed information, please contact the {inmate.county} County Sheriff&apos;s Office.
           </p>
         </div>
       </div>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Inmate, getInmatesByCountyPaginated } from '@/lib/supabase';
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
-import { ArrowRightIcon } from '@heroicons/react/16/solid';
+
 
 interface InmateTableProps {
   county: string;
@@ -74,7 +74,7 @@ export default function InmateTable({
   };
   
   return (
-    <div className="w-full">
+    <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
           Current Inmates in {county} County
@@ -91,39 +91,8 @@ export default function InmateTable({
       </div>
       
       {isLoading ? (
-        <div className="bg-card-bg border border-card-border rounded-lg shadow-md overflow-hidden">
-          {/* Skeleton Header Row */}
-          <div className="grid grid-cols-3 bg-table-header-bg">
-            <div className="px-6 py-4 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-              Last Name
-            </div>
-            <div className="px-6 py-4 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-              First Name
-            </div>
-            <div className="px-6 py-4 text-center text-xs font-medium text-foreground uppercase tracking-wider">
-              Details
-            </div>
-          </div>
-          
-          {/* Skeleton Inmate Rows */}
-          <div className="divide-y divide-card-border">
-            {[...Array(25)].map((_, index) => (
-              <div 
-                key={`skeleton-${index}`}
-                className="grid grid-cols-3 hover:bg-table-row-hover transition-colors"
-              >
-                <div className="px-6 py-4">
-                  <div className="h-4 bg-secondary-light rounded animate-pulse w-3/4"></div>
-                </div>
-                <div className="px-6 py-4">
-                  <div className="h-4 bg-secondary-light rounded animate-pulse w-1/2"></div>
-                </div>
-                <div className="px-6 py-4 flex justify-center">
-                  <div className="h-8 w-8 bg-secondary-light rounded-full animate-pulse"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       ) : inmates.length > 0 ? (
         <div className="bg-card-bg border border-card-border rounded-lg shadow-md overflow-hidden">
@@ -133,43 +102,38 @@ export default function InmateTable({
               Last Name
             </div>
             <div className="px-6 py-4 text-left text-xs font-medium text-foreground uppercase tracking-wider">
-              First Name
+              Middle Name
             </div>
-            <div className="px-6 py-4 text-center text-xs font-medium text-foreground uppercase tracking-wider">
-              Inmate Details
+            <div className="px-6 py-4 text-left text-xs font-medium text-foreground uppercase tracking-wider">
+              First Name
             </div>
           </div>
           
           {/* Inmate Rows */}
           <div className="divide-y divide-card-border">
             {inmates.map((inmate) => (
-              <div 
+              <Link 
+                href={`/inmate/${inmate.id}`}
                 key={`${inmate.county}-${inmate.last_name}-${inmate.first_name}`}
-                className="grid grid-cols-3 hover:bg-table-row-hover transition-colors"
+                className="grid grid-cols-3 hover:bg-table-row-hover transition-colors cursor-pointer"
               >
                 <div className="px-6 py-4 text-sm font-medium text-foreground break-words capitalize">
                   {inmate.last_name}
                 </div>
                 <div className="px-6 py-4 text-sm text-foreground opacity-80 break-words capitalize">
+                  {inmate.middle_name}
+                </div>
+                <div className="px-6 py-4 text-sm text-foreground opacity-80 break-words capitalize">
                   {inmate.first_name}
                 </div>
-                <div className="px-6 py-4 flex justify-center">
-                  <Link
-                    href={`/inmate/${inmate.id}`}
-                    className="p-2 rounded-full bg-primary-gradient text-white hover:brightness-110 hover:scale-105 transition-all duration-200 flex items-center justify-center"
-                    aria-label={`View details for ${inmate.first_name} ${inmate.last_name}`}
-                  >
-                    <ArrowRightIcon className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       ) : (
         <div className="text-center py-12 bg-card-bg border border-card-border rounded-lg shadow-md">
           <p className="text-foreground opacity-80">No inmates found for {county} County.</p>
-          {debouncedSearchTerm && (
+          {searchTerm && (
             <p className="text-foreground opacity-60 mt-2">
               Try adjusting your search or check back later.
             </p>

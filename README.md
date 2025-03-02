@@ -6,7 +6,7 @@ A Next.js application that allows users to view and look up inmates in Wisconsin
 
 - View inmates by county
 - Search for specific inmates
-- Daily updates from county jail rosters
+- Daily updates from county jail rosters (Vilas, Waukesha, Barron, and Burnett counties)
 - Responsive design for desktop and mobile
 - ID-based county routing for improved performance
 
@@ -74,6 +74,9 @@ A Next.js application that allows users to view and look up inmates in Wisconsin
 - `npm run init-all`: Initialize both counties and scheduler
 - `npm run scrape`: Trigger immediate scraping
 - `npm run refresh`: Refresh all inmate data
+- `npm run scrape:barron`: Scrape only Barron County inmates
+- `npm run scrape:burnett`: Scrape only Burnett County inmates
+- `npm run scrape:all`: Scrape all supported counties (Vilas, Waukesha, Barron, Burnett)
 
 ## Deployment
 

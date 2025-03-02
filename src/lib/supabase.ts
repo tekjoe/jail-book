@@ -10,6 +10,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export type Inmate = {
   id?: string;
   first_name: string;
+  middle_name: string;
   last_name: string;
   county: string;
   created_at?: string;

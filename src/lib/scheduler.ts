@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { scrapeAndSaveVilasInmates, scrapeAndSaveWaukeshaInmates } from './scraper';
+import { scrapeAndSaveVilasInmates, scrapeAndSaveWaukeshaInmates, scrapeAndSaveBarronInmates, scrapeAndSaveBurnettInmates } from './scraper';
 import { deleteAllInmates } from './supabase';
 
 /**
@@ -15,11 +15,29 @@ export async function refreshAllInmates(): Promise<void> {
     // Then scrape and save new data
     await scrapeAndSaveVilasInmates();
     await scrapeAndSaveWaukeshaInmates();
+    await scrapeAndSaveBarronInmates();
+    await scrapeAndSaveBurnettInmates();
 
     console.log('Complete inmate refresh completed successfully');
   } catch (error) {
     console.error('Error in refreshAllInmates:', error);
     throw error;
+  }
+}
+
+export async function refreshSpecificCounty(county: string): Promise<void> {
+  console.log(`Starting ${county} County inmate refresh at ${new Date().toISOString()}`);
+  if (county === 'Burnett') {
+    await scrapeAndSaveBurnettInmates();
+  } else if (county === 'Vilas') {
+    await scrapeAndSaveVilasInmates();
+  } else if (county === 'Waukesha') {
+    await scrapeAndSaveWaukeshaInmates();
+  } else if (county === 'Barron') {
+    await scrapeAndSaveBarronInmates();
+  } else {
+    console.error(`Invalid county: ${county}`);
+    throw new Error(`Invalid county: ${county}`);
   }
 }
 

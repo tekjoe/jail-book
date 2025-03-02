@@ -13,7 +13,9 @@ function delay(time: number) {
 }
 
 
-// URL for Vilas County Sheriff's services page
+// URLs for each county's inmate list
+const BARRON_COUNTY_URL = "https://www.co.barron.wi.us/inmates.cfm"
+const BURNETT_COUNTY_URL = "https://www.burnettcountywi.gov/DocumentCenter/View/11717/Current_Inmatespdf?bidId="
 const VILAS_SERVICES_URL = 'https://www.vilascountysheriff.org/services';
 const WAUKESHA_INMATES_PDF = 'https://src.waukeshacounty.gov/page/Internet%20Inmate%20Information.pdf';
 
@@ -35,8 +37,6 @@ export async function downloadVilasPDF(): Promise<string> {
 
     // Find the link with text "Current Inmate List"
     const linkElement = await page.$("#comp-j9zy5x1z a.wixui-rich-text__text");
-
-    console.log(linkElement);
 
     if (!linkElement) {
       throw new Error('Could not find "Current Inmate List" link on the page');
@@ -112,6 +112,99 @@ export async function downloadWaukeshaPDF(): Promise<string> {
 }
 
 /**
+ * Downloads the inmate PDF from Burnett County Sheriff's website
+ * @returns Path to the downloaded PDF file
+ */
+export async function downloadBurnettPDF(): Promise<string> {
+  try {
+    console.log('Downloading Burnett County inmate list...');
+
+    // Download the PDF
+    console.log(`Downloading PDF from: ${BURNETT_COUNTY_URL}`);
+    const response = await axios({
+      method: 'GET',
+      url: BURNETT_COUNTY_URL,
+      responseType: 'arraybuffer'
+    });
+
+    // Create temp directory if it doesn't exist
+    const tempDir = path.join(process.cwd(), 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir);
+    }
+
+    // Save the PDF to a file
+    const pdfPath = path.join(tempDir, `burnett_inmates_${new Date().toISOString().split('T')[0]}.pdf`);
+    fs.writeFileSync(pdfPath, response.data);
+
+    console.log(`PDF downloaded and saved to: ${pdfPath}`);
+    return pdfPath;
+  } catch (error) {
+    console.error('Error downloading Burnett County PDF:', error);
+    throw error;
+  }
+}
+
+/**
+ * Parses the inmate PDF and extracts inmate names from Burnett County
+ * @param pdfPath Path to the PDF file
+ * @returns Array of inmates with first, middle, and last names
+ */
+export async function parseBurnettInmatePDF(pdfPath: string): Promise<Omit<Inmate, 'id' | 'created_at'>[]> {
+  try {
+    console.log(`Parsing PDF: ${pdfPath}`);
+
+    const dataBuffer = fs.readFileSync(pdfPath);
+    const data = await pdf(dataBuffer);
+
+    const text = data.text;
+
+    // Extract names using regex pattern for "Name: Last, First"
+    const nameRegex = /([A-Z]+),\s+([A-Z]+)(?:\s+([A-Z]))?/g;
+    const matches = [...text.matchAll(nameRegex)];
+
+    console.log(matches);
+
+    const inmates: Omit<Inmate, 'id' | 'created_at'>[] = matches.map(match => ({
+      last_name: match[1].trim(),
+      first_name: match[2].trim(),
+      middle_name: match[3]?.trim() || "",
+      county: 'Burnett'
+    }));
+
+    console.log(`Extracted ${inmates.length} inmates from the PDF`);
+    return inmates;
+  } catch (error) {
+    console.error('Error parsing Burnett County inmate PDF:', error);
+    throw error;
+  }
+}
+
+/**
+ * Main function to scrape and save Burnett County inmates
+ */
+export async function scrapeAndSaveBurnettInmates(): Promise<void> {
+  try {
+    console.log('Starting Burnett County inmate scraping process...');
+
+    // Download the PDF
+    const pdfPath = await downloadBurnettPDF();
+
+    // Parse the PDF to extract inmate information
+    const inmates = await parseBurnettInmatePDF(pdfPath);
+
+    // Save inmates to Supabase
+    await saveInmates(inmates);
+
+    console.log('Burnett County inmate scraping completed successfully');
+  } catch (error) {
+    console.error('Error in scrapeAndSaveBurnettInmates:', error);
+    throw error;
+  }
+}
+
+
+/**
  * Parses the inmate PDF and extracts inmate names
  * @param pdfPath Path to the PDF file
  * @returns Array of inmates with first and last names
@@ -142,6 +235,7 @@ export async function parseWaukeshaInmatePDF(pdfPath: string): Promise<Omit<Inma
                   inmates.push({
                     last_name: lastName,
                     first_name: firstName,
+                    middle_name: "",
                     county: 'Waukesha'
                   });
                 }
@@ -212,6 +306,7 @@ export async function parseVilasInmatePDF(pdfPath: string): Promise<Omit<Inmate,
     const inmates: Omit<Inmate, 'id' | 'created_at'>[] = matches.map(match => ({
       last_name: match[1].trim(),
       first_name: match[2].trim().replace("Name", ""),
+      middle_name: "",
       county: 'Vilas'
     }));
 
@@ -247,4 +342,92 @@ export async function scrapeAndSaveVilasInmates(): Promise<void> {
     console.error('Error in scrapeAndSaveVilasInmates:', error);
     throw error;
   }
-} 
+}
+
+/**
+ * Main function to scrape and save Barron County inmates
+ */
+export async function parseBarronCountyInmates(): Promise<void> {
+  try {
+    console.log('Starting Barron County inmate scraping process...');
+
+    // Navigate to the Barron County inmate list page
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto(BARRON_COUNTY_URL);
+
+    // Wait for the page to load
+    await delay(1000);
+
+    // Extract the inmates from the page
+    const inmates = await page.evaluate(() => {
+      const inmateList: Omit<Inmate, 'id' | 'created_at'>[] = [];
+
+      // Find all font elements with the specified style attribute
+      const fontElements = Array.from(document.querySelectorAll('font[style="text-transform:capitalize"]'));
+
+      // Process each font element to extract inmate names
+      fontElements.forEach(element => {
+        const nameText = element.textContent?.trim();
+
+        if (nameText) {
+          // Parse the name in format: "Lastname, Firstname Middlename"
+          const nameParts = nameText.split(',');
+
+          if (nameParts.length >= 2) {
+            const lastName = nameParts[0].trim();
+
+            // Split the remaining part to get first and middle names
+            const firstMiddleParts = nameParts[1].trim().split(' ');
+            const firstName = firstMiddleParts[0].trim();
+
+            // Join any remaining parts as the middle name
+            const middleName = firstMiddleParts.slice(1).join(' ').trim();
+
+            inmateList.push({
+              last_name: lastName,
+              first_name: firstName,
+              middle_name: middleName,
+              county: 'Barron'
+            });
+          }
+        }
+      });
+
+      return inmateList;
+    });
+
+    // Close the browser
+    await browser.close();
+
+    // Log the inmates data before saving
+    console.log(`Found ${inmates.length} inmates to save:`, JSON.stringify(inmates.slice(0, 3), null, 2));
+
+    // Save inmates to Supabase
+    await saveInmates(inmates);
+
+    console.log('Barron County inmate scraping completed successfully');
+  } catch (error) {
+    console.error('Error in parseBarronCountyInmates:', error);
+    throw error;
+  }
+}
+
+/**
+ * Main function to scrape and save Barron County inmates
+ */
+export async function scrapeAndSaveBarronInmates(): Promise<void> {
+  try {
+    console.log('Starting Barron County inmate scraping process...');
+
+    // Parse and save Barron County inmates
+    await parseBarronCountyInmates();
+
+    console.log('Barron County inmate scraping completed successfully');
+  } catch (error) {
+    console.error('Error in scrapeAndSaveBarronInmates:', error);
+    throw error;
+  }
+}
+
+

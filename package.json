@@ -12,13 +12,21 @@
     "init-counties": "node scripts/init-counties.js",
     "init-all": "node scripts/init-all.js",
     "scrape": "curl http://localhost:3000/api/scrape",
-    "refresh": "curl http://localhost:3000/api/refresh"
+    "refresh": "curl http://localhost:3000/api/refresh",
+    "refresh:barron": "curl http://localhost:3000/api/refresh?county=Barron",
+    "refresh:burnett": "curl http://localhost:3000/api/refresh?county=Burnett",
+    "refresh:vilas": "curl http://localhost:3000/api/refresh?county=Vilas",
+    "refresh:waukesha": "curl http://localhost:3000/api/refresh?county=Waukesha",
+    "scrape:barron": "node scripts/scrape-barron.js",
+    "scrape:burnett": "node scripts/scrape-burnett.js",
+    "scrape:all": "node scripts/scrape-all.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-navigation-menu": "^1.1.4",
     "@supabase/supabase-js": "^2.39.7",
     "axios": "^1.6.7",
+    "dotenv": "^16.4.7",
     "lucide-react": "^0.476.0",
     "next": "15.1.7",
     "node-cron": "^3.0.3",
@@ -40,6 +48,7 @@
     "eslint-config-next": "15.1.7",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

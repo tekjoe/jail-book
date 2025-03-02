@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import InmateTable from '@/components/InmateTable';
 import { getInmatesByCountyPaginated, getCountyByName, WISCONSIN_COUNTIES } from '@/lib/supabase';
 
+
 interface CountyPageProps {
   params: Promise<{
     county: string;
@@ -29,13 +30,13 @@ export default async function CountyPage(props: CountyPageProps) {
   const { inmates, totalCount } = await getInmatesByCountyPaginated(county.name, 1, 25);
 
   return (
-    <div className="w-full">
-      <InmateTable 
-        county={county.name} 
+      <div className="w-full">
+        <InmateTable 
+          county={county.name} 
         initialInmates={inmates}
-        initialTotalCount={totalCount}
-      />
-    </div>
+          initialTotalCount={totalCount}
+        />
+      </div>
   );
 }
 

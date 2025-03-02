@@ -7,7 +7,7 @@ export default function NotFound() {
       <div className="text-center max-w-md bg-card-bg border border-card-border rounded-lg shadow-md p-8">
         <h1 className="text-4xl font-bold mb-4 text-foreground">404 - Not Found</h1>
         <p className="text-foreground opacity-70 mb-8">
-          The county or page you're looking for doesn't exist or has been moved.
+          The county or page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <Link
           href="/"
