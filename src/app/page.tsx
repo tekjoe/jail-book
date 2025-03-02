@@ -88,7 +88,7 @@ export default async function HomePage() {
           
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {counties.slice(0, 24).map((county) => {
-              const isActive = ['Vilas', 'Waukesha', 'Barron', 'Burnett'].includes(county.name);
+              const isActive = ['Vilas', 'Waukesha', 'Barron', 'Burnett', 'Calumet'].includes(county.name);
               const countySlug = county.name.toLowerCase().replace(/\s+/g, '-');
               
               return (

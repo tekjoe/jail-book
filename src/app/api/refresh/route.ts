@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     // If county parameter is provided, refresh only that county
     if (county) {
       // Validate county name
-      const validCounties = ['Vilas', 'Waukesha', 'Barron', 'Burnett'];
+      const validCounties = ['Vilas', 'Waukesha', 'Barron', 'Burnett', 'Calumet'];
       if (!validCounties.includes(county)) {
         return NextResponse.json({
           success: false,

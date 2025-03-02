@@ -16,8 +16,89 @@ function delay(time: number) {
 // URLs for each county's inmate list
 const BARRON_COUNTY_URL = "https://www.co.barron.wi.us/inmates.cfm"
 const BURNETT_COUNTY_URL = "https://www.burnettcountywi.gov/DocumentCenter/View/11717/Current_Inmatespdf?bidId="
+const CALUMET_COUNTY_URL = "https://publicreports.blob.core.windows.net/calumetpdf/inmatelisting.pdf"
 const VILAS_SERVICES_URL = 'https://www.vilascountysheriff.org/services';
 const WAUKESHA_INMATES_PDF = 'https://src.waukeshacounty.gov/page/Internet%20Inmate%20Information.pdf';
+
+export async function downloadCalumetPDF(): Promise<string> {
+  try {
+    console.log('Downloading Calumet County inmate list...');
+
+    // Download the PDF
+    console.log(`Downloading PDF from: ${CALUMET_COUNTY_URL}`);
+    const response = await axios({
+      method: 'GET',
+      url: CALUMET_COUNTY_URL,
+      responseType: 'arraybuffer'
+    });
+
+    // Create temp directory if it doesn't exist
+    const tempDir = path.join(process.cwd(), 'temp');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir);
+    }
+
+    // Save the PDF to a file
+    const pdfPath = path.join(tempDir, `calumet_inmates_${new Date().toISOString().split('T')[0]}.pdf`);
+    fs.writeFileSync(pdfPath, response.data);
+
+    console.log(`PDF downloaded and saved to: ${pdfPath}`);
+    return pdfPath;
+  } catch (error) {
+    console.error('Error downloading Calumet County PDF:', error);
+    throw error;
+  }
+}
+
+export async function parseCalumetInmatePDF(pdfPath: string): Promise<Omit<Inmate, 'id' | 'created_at'>[]> {
+  try {
+    console.log(`Parsing PDF: ${pdfPath}`);
+
+    const dataBuffer = fs.readFileSync(pdfPath);
+    const data = await pdf(dataBuffer);
+
+    const text = data.text;
+
+    // Updated regex to handle compound last names and capture DOB
+    const inmateRegex = /(\d+)?([A-Z]+(?: [A-Z]+)?), ([A-Z]+)(?: ([A-Z]+))?(?:.*?(\d{1,2}\/\d{1,2}\/\d{4}))?/g;
+    const matches = [...text.matchAll(inmateRegex)];
+
+    const inmates: Omit<Inmate, 'id' | 'created_at'>[] = matches.map(match => ({
+      last_name: match[2].trim(),
+      first_name: match[3].trim(),
+      middle_name: match[4]?.trim() || "",
+      county: 'Calumet'
+    }));
+
+    console.log(`Extracted ${inmates.length} inmates from the PDF`);
+    return inmates;
+  } catch (error) {
+    console.error('Error parsing Calumet County inmate PDF:', error);
+    throw error;
+  }
+}
+
+
+export async function scrapeAndSaveCalumetInmates(): Promise<void> {
+  try {
+    console.log('Starting Calumet County inmate scraping process...');
+
+    // Download the PDF
+    const pdfPath = await downloadCalumetPDF();
+
+    // Parse the PDF to extract inmate information
+    const inmates = await parseCalumetInmatePDF(pdfPath);
+
+    // Save inmates to Supabase
+    await saveInmates(inmates);
+
+    console.log('Calumet County inmate scraping completed successfully');
+  } catch (error) {
+    console.error('Error in scrapeAndSaveCalumetInmates:', error);
+    throw error;
+  }
+}
+
 
 /**
  * Downloads the inmate PDF from Vilas County Sheriff's website
